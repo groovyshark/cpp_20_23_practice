@@ -4,34 +4,43 @@
 #include <ranges>
 #include <concepts>
 
-template<typename R>
-concept RangeOfInts = std::ranges::range<R> && 
-                      std::convertible_to<std::ranges::range_value_t<R>, int>;
+template <typename T>
+concept DivisibleAndMultipliable = requires(T a, T b) {
+    { a / b } -> std::same_as<T>;
+    { a * b } -> std::same_as<T>;
+};
 
-// Example of a function using the concept
-template<RangeOfInts R>
-constexpr int process(R&& data) {
-    auto transformed = data
-        | std::views::filter([](int x) { return x % 2 == 0; })
-        | std::views::transform([](int x) { return x * x; })
-        | std::views::take(5);
+template <typename T>
+concept HasSizeMethod = requires(T a) {
+    { a.size() } -> std::convertible_to<std::size_t>;
+};
 
-    int sum = 0;
-    for (const auto& value : transformed) {
-        sum += value;
-    }
+template <typename T>
+concept NumericContainer = std::ranges::range<T> &&
+    std::convertible_to<std::ranges::range_value_t<T>, int>;
 
-    return sum;
-    // return std::accumulate(transformed.begin(), transformed.end(), 0);
+
+template <DivisibleAndMultipliable T>
+T calculate(T a, T b) {
+    return (a * b) / (a + b);
+}
+
+template <HasSizeMethod T>
+std::size_t getSize(const T& x) {
+    return x.size();
+}
+
+template <NumericContainer C>
+int numericSum(const C& container) {
+    return std::accumulate(container.begin(), container.end(), 0);
 }
 
 int main() {
-    std::vector<int> v{1,2,3,4,5,6,7,8,9,10};
-    std::cout << "Runtime: " << process(v) << std::endl;
+    std::cout << calculate(10.0, 20.0) << std::endl;
 
-    constexpr std::array a{2, 4, 6, 8, 10, 11};
-    std::cout << "Compile: " << process(a) << std::endl;
-    static_assert(process(a) == 2*2 + 4*4 + 6*6 + 8*8 + 10*10);
+    std::cout << getSize(std::string{1, 2, 3, 4, 5}) << std::endl;
+
+    std::cout << numericSum(std::vector<float>{1, 2, 3, 4, 5}) << std::endl;
 
     return 0;
 }
