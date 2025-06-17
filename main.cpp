@@ -22,6 +22,7 @@ constexpr int process(R&& data) {
     }
 
     return sum;
+    // return std::accumulate(transformed.begin(), transformed.end(), 0);
 }
 
 int main() {
